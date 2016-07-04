@@ -1,10 +1,3 @@
-/*
-根据公司背景
-客户端基于ftp下载
-下载限速为80M，且不能修改
-cut-dirs默认是2，且不能修改
-
-*/
 package main
 
 import (

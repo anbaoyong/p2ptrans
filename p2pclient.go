@@ -1,6 +1,11 @@
 /*
+根据公司背景
+客户端基于ftp下载
+下载限速为80M，且不能修改
+cut-dirs默认是2，且不能修改
 此服务下载完成后会自动退出
 */
+
 package main
 import (
   "github.com/gin-gonic/gin"
