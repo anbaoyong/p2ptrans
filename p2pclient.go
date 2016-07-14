@@ -1,8 +1,6 @@
 /*
 根据公司背景
 客户端基于ftp下载
-下载限速为80M，且不能修改
-cut-dirs默认是2，且不能修改
 此服务下载完成后会自动退出
 */
 
@@ -40,15 +38,17 @@ func accept() {
     dstpath := c.Query("dstpath")
     localhost := c.Query("localhost")
     port := c.Query("port")
-    go  wget(src,srcpath,dstpath,master,localhost,port)
+    limitrate := c.Query("limitrate")
+    cutdirs := c.Query("cutdirs")
+    go  wget(src,srcpath,dstpath,master,localhost,port,limitrate,cutdirs)
    c.String(200,"客户端返回")
     })
     router.Run(":12306")
 }
 
-func wget(src,srcpath,dstpath,master,localhost,port string) {
+func wget(src,srcpath,dstpath,master,localhost,port,limitrate,cutdirs string) {
     defer wg.Done()
-    download := fmt.Sprintf("wget -m -r -nH -P %s --limit-rate=80m --cut-dirs=2 ftp://%s%s",dstpath,src,srcpath)
+    download := fmt.Sprintf("wget -m -r -nH -P %s --limit-rate=%s --cut-dirs=%s ftp://%s%s",dstpath,limitrate,cutdirs,src,srcpath)
     fmt.Println(download)
    _,err := exec.Command("sh","-c",download).CombinedOutput()
     if err != nil {
