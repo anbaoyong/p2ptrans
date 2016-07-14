@@ -26,6 +26,8 @@ Master *string
 Srcpath *string
 Dstpath *string
 Filename *string
+Limitrate *string
+Cutdirs *string
 Timeout *int
 )
 var succ_ch = make(chan string,10000)
@@ -86,9 +88,9 @@ func accept() {
   //router.Run(":%s",Conf().Port)
 }
 //request向客户端发送下载任务
-func request(master,port,src,dst,srcpath,dstpath string) {
+func request(master,port,src,dst,srcpath,dstpath,limitrate,cutdirs string) {
     req := gorequest.New()
-    url := fmt.Sprintf("http://%s:12306/client?port=%s&src=%s&srcpath=%s&dstpath=%s&master=%s&localhost=%s",dst,port,src,srcpath,dstpath,master,dst)
+    url := fmt.Sprintf("http://%s:12306/client?port=%s&src=%s&srcpath=%s&dstpath=%s&master=%s&localhost=%s&limitrate=%s&cutdirs=%s",dst,port,src,srcpath,dstpath,master,dst,limitrate,cutdirs)
     fmt.Println(url)
     //_, _, errs := req.Get(url).Timeout(10*time.Second).End() //设置url超时时间为10妙
     _, _, errs := req.Get(url).End() //设置url超时时间为10妙
@@ -105,7 +107,7 @@ func handle(dstlist []string) {
         select {
             case succhost := <- succ_ch:
                 if index < lendst {
-                    request(*Master,*Port,succhost,dstlist[index],*Srcpath,*Dstpath)
+                    request(*Master,*Port,succhost,dstlist[index],*Srcpath,*Dstpath,*Limitrate,*Cutdirs)
                     index = index + 1
                 } else {
                     time.Sleep(time.Duration(*Timeout)*time.Second)
@@ -113,6 +115,7 @@ func handle(dstlist []string) {
                         FailList = Set(dstlist,SuccList)
                         fmt.Printf("成功机器数为%d，机器列表为，机器列表为%v\n",len(SuccList),SuccList)
                         fmt.Printf("失败机器数为%d，机器列表为，机器列表为%v\n",len(FailList),FailList)
+                        os.Exit(2)
                     } else {
                         fmt.Printf("全部成功，成功机器数为%d，机器列表为，机器列表为%v\n",len(SuccList),SuccList)
                     }
@@ -126,7 +129,7 @@ func handle(dstlist []string) {
 func init() {
 //解析command line参数
     flag.Usage = func() {
-        fmt.Println("Usage: <-m host> [-f file] [-s srcpath] [-d dstpath] [-p port] [-t timeout]")
+        fmt.Println("Usage: <-m host> [-f file] [-s srcpath] [-d dstpath] [-p port] [-t timeout] [-c cut-dirs] [-l limit-rate]")
         flag.PrintDefaults()
     }
     Filename = flag.String("f","ip.txt","File that contains the target machine")
@@ -134,6 +137,8 @@ func init() {
     Dstpath = flag.String("d","/home/xiaoju","Data destination path")
     Port =  flag.String("p","12306","Listen port")
     Master = flag.String("m","","ip or host name of the master")
+    Limitrate = flag.String("l","80m","wget limit-rate")
+    Cutdirs = flag.String("c","2","wget cut-dirs")
     Timeout = flag.Int("t",1800,"If the master does not receive the return value within the specified time , that the transmission fails")
     flag.Parse()
     ListenPort = fmt.Sprintf(":%s",*Port)
